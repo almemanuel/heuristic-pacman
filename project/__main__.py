@@ -3,6 +3,7 @@ import copy
 from board import boards
 import pygame
 import math
+import random
 
 pygame.init()
 
@@ -304,6 +305,47 @@ class Ghost:
         elif self.x_pos > 900:
             self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
+
+    def move_clyde_ai(self):
+    # Função de heurística usando a distância de Manhattan
+        def heuristic(current_x, current_y, target_x, target_y):
+            return abs(current_x - target_x) + abs(current_y - target_y)
+
+        # Direções possíveis (r, l, u, d)
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        best_direction = None
+        best_distance = float('inf')
+
+        for i, direction in enumerate(directions):
+            # Verifique se o fantasma pode virar na direção atual (usando self.turns)
+            if self.turns[i]:
+                new_x = self.x_pos + direction[0] * self.speed // 2
+                new_y = self.y_pos + direction[1] * self.speed // 2
+
+                # Calcule a heurística para o próximo movimento
+                distance = heuristic(new_x, new_y, self.target[0], self.target[1])
+
+                if distance < best_distance:
+                    best_distance = distance
+                    best_direction = direction
+
+        # Atualize a posição do Clyde com base na direção escolhida
+        if best_direction is not None:
+            self.x_pos += best_direction[0] * self.speed // 2
+            self.y_pos += best_direction[1] * self.speed // 2
+
+        if self.x_pos < -30:
+            self.x_pos = 900
+        elif self.x_pos > 900:
+            self.x_pos -= 30
+
+        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+           self.x_pos = 410
+           self.y_pos = 500
+
+        return self.x_pos, self.y_pos, self.direction 
+
 
     def move_blinky(self):
         # r, l, u, d
@@ -951,7 +993,7 @@ while run:
         if not blinky_dead and not blinky.in_box:
             blinky_x, blinky_y, blinky_direction = blinky.move_blinky()
         else:
-            blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
+           blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
         if not pinky_dead and not pinky.in_box:
             pinky_x, pinky_y, pinky_direction = pinky.move_pinky()
         else:
@@ -960,7 +1002,8 @@ while run:
             inky_x, inky_y, inky_direction = inky.move_inky()
         else:
             inky_x, inky_y, inky_direction = inky.move_clyde()
-        clyde_x, clyde_y, clyde_direction = clyde.move_clyde()
+        #clyde_x, clyde_y, clyde_direction = clyde.move_clyde()
+        clyde_x, clyde_y, clyde_direction = clyde.move_clyde_ai()
     score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
     # add to if not powerup to check if eaten ghosts
     if not powerup:
