@@ -700,6 +700,78 @@ class Ghost:
             self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
+    def move_blinky_ai(self):
+        target_x, target_y = self.target
+
+        # Direções possíveis (r, l, u, d)
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        best_direction = None
+        best_distance = float('inf')
+
+        for direction in directions:
+            new_x = self.x_pos + direction[0] * self.speed // 2
+            new_y = self.y_pos + direction[1] * self.speed // 2
+
+            # Calcule a heurística para o próximo movimento
+            distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+
+            if distance < best_distance:
+                best_distance = distance
+                best_direction = direction
+
+        # Atualize a posição do Blinky com base na direção escolhida
+        if best_direction is not None:
+            self.x_pos += best_direction[0] * self.speed // 2
+            self.y_pos += best_direction[1] * self.speed // 2
+
+        if self.x_pos < -30:
+            self.x_pos = 900
+        elif self.x_pos > 900:
+            self.x_pos -= 30
+
+        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+            self.x_pos = 410
+            self.y_pos = 500
+
+        return self.x_pos, self.y_pos, self.direction
+
+    def move_pinky_ai(self):
+        target_x, target_y = self.target
+
+        # Direções possíveis (r, l, u, d)
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        best_direction = None
+        best_distance = float('inf')
+
+        for direction in directions:
+            new_x = self.x_pos + direction[0] * self.speed // 2
+            new_y = self.y_pos + direction[1] * self.speed // 2
+
+            # Calcule a heurística para o próximo movimento
+            distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+
+            if distance < best_distance:
+                best_distance = distance
+                best_direction = direction
+
+        # Atualize a posição do Pinky com base na direção escolhida
+        if best_direction is not None:
+            self.x_pos += best_direction[0] * self.speed // 2
+            self.y_pos += best_direction[1] * self.speed // 2
+
+        if self.x_pos < -30:
+            self.x_pos = 900
+        elif self.x_pos > 900:
+            self.x_pos -= 30
+
+        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+            self.x_pos = 410
+            self.y_pos = 500
+
+        return self.x_pos, self.y_pos, self.direction
+
 
 def draw_misc():
     score_text = font.render(f'Score: {score}', True, 'white')
@@ -991,17 +1063,27 @@ while run:
     if moving:
         player_x, player_y = move_player(player_x, player_y)
         if not blinky_dead and not blinky.in_box:
-            blinky_x, blinky_y, blinky_direction = blinky.move_blinky()
+            # blinky_x, blinky_y, blinky_direction = blinky.move_blinky()
+            blinky_x, blinky_y, blinky_direction = blinky.move_blinky_ai()
+
         else:
-           blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
+        #    blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
+           blinky_x, blinky_y, blinky_direction = blinky.move_clyde_ai()
+
         if not pinky_dead and not pinky.in_box:
-            pinky_x, pinky_y, pinky_direction = pinky.move_pinky()
+            # pinky_x, pinky_y, pinky_direction = pinky.move_pinky()
+            pinky_x, pinky_y, pinky_direction = pinky.move_pinky_ai()
+
         else:
-            pinky_x, pinky_y, pinky_direction = pinky.move_clyde()
+            # pinky_x, pinky_y, pinky_direction = pinky.move_clyde()
+            pinky_x, pinky_y, pinky_direction = pinky.move_clyde_ai()
+
         if not inky_dead and not inky.in_box:
             inky_x, inky_y, inky_direction = inky.move_inky()
         else:
-            inky_x, inky_y, inky_direction = inky.move_clyde()
+            # inky_x, inky_y, inky_direction = inky.move_clyde()
+            inky_x, inky_y, inky_direction = inky.move_clyde_ai()
+
         #clyde_x, clyde_y, clyde_direction = clyde.move_clyde()
         clyde_x, clyde_y, clyde_direction = clyde.move_clyde_ai()
     score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
