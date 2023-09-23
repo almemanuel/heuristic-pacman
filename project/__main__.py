@@ -18,13 +18,20 @@ color = 'blue'
 PI = math.pi
 player_images = []
 for i in range(1, 5):
-    player_images.append(pygame.transform.scale(pygame.image.load(f'project/assets/player_images/{i}.png'), (45, 45)))
-blinky_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/red.png'), (45, 45))
-pinky_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/pink.png'), (45, 45))
-inky_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/blue.png'), (45, 45))
-clyde_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/orange.png'), (45, 45))
-spooked_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/powerup.png'), (45, 45))
-dead_img = pygame.transform.scale(pygame.image.load(f'project/assets/ghost_images/dead.png'), (45, 45))
+    player_images.append(pygame.transform.scale(pygame.image.load(
+        f'project/assets/player_images/{i}.png'), (45, 45)))
+blinky_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/red.png'), (45, 45))
+pinky_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/pink.png'), (45, 45))
+inky_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/blue.png'), (45, 45))
+clyde_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/orange.png'), (45, 45))
+spooked_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/powerup.png'), (45, 45))
+dead_img = pygame.transform.scale(pygame.image.load(
+    f'project/assets/ghost_images/dead.png'), (45, 45))
 player_x = 450
 player_y = 663
 direction = 0
@@ -50,7 +57,8 @@ score = 0
 powerup = False
 power_counter = 0
 eaten_ghost = [False, False, False, False]
-targets = [(player_x, player_y), (player_x, player_y), (player_x, player_y), (player_x, player_y)]
+targets = [(player_x, player_y), (player_x, player_y),
+           (player_x, player_y), (player_x, player_y)]
 blinky_dead = False
 inky_dead = False
 clyde_dead = False
@@ -90,7 +98,8 @@ class Ghost:
             screen.blit(spooked_img, (self.x_pos, self.y_pos))
         else:
             screen.blit(dead_img, (self.x_pos, self.y_pos))
-        ghost_rect = pygame.rect.Rect((self.center_x - 18, self.center_y - 18), (36, 36))
+        ghost_rect = pygame.rect.Rect(
+            (self.center_x - 18, self.center_y - 18), (36, 36))
         return ghost_rect
 
     def check_collisions(self):
@@ -307,7 +316,7 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
     def move_clyde_ai(self):
-    # Função de heurística usando a distância de Manhattan
+        # Função de heurística usando a distância de Manhattan
         def heuristic(current_x, current_y, target_x, target_y):
             return abs(current_x - target_x) + abs(current_y - target_y)
 
@@ -324,7 +333,8 @@ class Ghost:
                 new_y = self.y_pos + direction[1] * self.speed // 2
 
                 # Calcule a heurística para o próximo movimento
-                distance = heuristic(new_x, new_y, self.target[0], self.target[1])
+                distance = heuristic(
+                    new_x, new_y, self.target[0], self.target[1])
 
                 if distance < best_distance:
                     best_distance = distance
@@ -341,11 +351,10 @@ class Ghost:
             self.x_pos -= 30
 
         if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
-           self.x_pos = 410
-           self.y_pos = 500
+            self.x_pos = 410
+            self.y_pos = 500
 
-        return self.x_pos, self.y_pos, self.direction 
-
+        return self.x_pos, self.y_pos, self.direction
 
     def move_blinky(self):
         # r, l, u, d
@@ -451,6 +460,47 @@ class Ghost:
             self.x_pos = 900
         elif self.x_pos > 900:
             self.x_pos - 30
+        return self.x_pos, self.y_pos, self.direction
+
+    def move_inky_ai(self, blinky_x, blinky_y, pinky_x, pinky_y):
+        target_x, target_y = self.target
+
+        # Direções possíveis (r, l, u, d)
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        best_direction = None
+        best_distance = float('inf')
+
+        for direction in directions:
+            new_x = self.x_pos + direction[0] * self.speed // 2
+            new_y = self.y_pos + direction[1] * self.speed // 2
+
+            # Calcule a posição intermediária com base nas posições de Blinky e Pinky
+            intermediate_x = (blinky_x + pinky_x) // 2
+            intermediate_y = (blinky_y + pinky_y) // 2
+
+            # Calcule a heurística para o próximo movimento, considerando o destino e a posição intermediária
+            distance = math.sqrt((new_x - intermediate_x) **
+                                 2 + (new_y - intermediate_y)**2)
+
+            if distance < best_distance:
+                best_distance = distance
+                best_direction = direction
+
+        # Atualize a posição de Inky com base na direção escolhida
+        if best_direction is not None:
+            self.x_pos += best_direction[0] * self.speed // 2
+            self.y_pos += best_direction[1] * self.speed // 2
+
+        if self.x_pos < -30:
+            self.x_pos = 900
+        elif self.x_pos > 900:
+            self.x_pos -= 30
+
+        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+            self.x_pos = 410
+            self.y_pos = 500
+
         return self.x_pos, self.y_pos, self.direction
 
     def move_inky(self):
@@ -779,16 +829,19 @@ def draw_misc():
     if powerup:
         pygame.draw.circle(screen, 'blue', (140, 930), 15)
     for i in range(lives):
-        screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))
+        screen.blit(pygame.transform.scale(
+            player_images[0], (30, 30)), (650 + i * 40, 915))
     if game_over:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
+        pygame.draw.rect(screen, 'white', [50, 200, 800, 300], 0, 10)
         pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render('Game over! Space bar to restart!', True, 'red')
+        gameover_text = font.render(
+            'Game over! Space bar to restart!', True, 'red')
         screen.blit(gameover_text, (100, 300))
     if game_won:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
+        pygame.draw.rect(screen, 'white', [50, 200, 800, 300], 0, 10)
         pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render('Victory! Space bar to restart!', True, 'green')
+        gameover_text = font.render(
+            'Victory! Space bar to restart!', True, 'green')
         screen.blit(gameover_text, (100, 300))
 
 
@@ -814,9 +867,11 @@ def draw_board():
     for i in range(len(level)):
         for j in range(len(level[i])):
             if level[i][j] == 1:
-                pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 4)
+                pygame.draw.circle(
+                    screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 4)
             if level[i][j] == 2 and not flicker:
-                pygame.draw.circle(screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 10)
+                pygame.draw.circle(
+                    screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 10)
             if level[i][j] == 3:
                 pygame.draw.line(screen, color, (j * num2 + (0.5 * num2), i * num1),
                                  (j * num2 + (0.5 * num2), i * num1 + num1), 3)
@@ -834,7 +889,8 @@ def draw_board():
                                 3 * PI / 2, 3)
             if level[i][j] == 8:
                 pygame.draw.arc(screen, color,
-                                [(j * num2 - (num2 * 0.4)) - 2, (i * num1 - (0.4 * num1)), num2, num1], 3 * PI / 2,
+                                [(j * num2 - (num2 * 0.4)) - 2, (i * num1 -
+                                                                 (0.4 * num1)), num2, num1], 3 * PI / 2,
                                 2 * PI, 3)
             if level[i][j] == 9:
                 pygame.draw.line(screen, 'white', (j * num2, i * num1 + (0.5 * num1)),
@@ -846,11 +902,14 @@ def draw_player():
     if direction == 0:
         screen.blit(player_images[counter // 5], (player_x, player_y))
     elif direction == 1:
-        screen.blit(pygame.transform.flip(player_images[counter // 5], True, False), (player_x, player_y))
+        screen.blit(pygame.transform.flip(
+            player_images[counter // 5], True, False), (player_x, player_y))
     elif direction == 2:
-        screen.blit(pygame.transform.rotate(player_images[counter // 5], 90), (player_x, player_y))
+        screen.blit(pygame.transform.rotate(
+            player_images[counter // 5], 90), (player_x, player_y))
     elif direction == 3:
-        screen.blit(pygame.transform.rotate(player_images[counter // 5], 270), (player_x, player_y))
+        screen.blit(pygame.transform.rotate(
+            player_images[counter // 5], 270), (player_x, player_y))
 
 
 def check_position(centerx, centery):
@@ -1046,7 +1105,8 @@ while run:
         if 1 in level[i] or 2 in level[i]:
             game_won = False
 
-    player_circle = pygame.draw.circle(screen, 'black', (center_x, center_y), 20, 2)
+    player_circle = pygame.draw.circle(
+        screen, 'black', (center_x, center_y), 20, 2)
     draw_player()
     blinky = Ghost(blinky_x, blinky_y, targets[0], ghost_speeds[0], blinky_img, blinky_direction, blinky_dead,
                    blinky_box, 0)
@@ -1057,7 +1117,8 @@ while run:
     clyde = Ghost(clyde_x, clyde_y, targets[3], ghost_speeds[3], clyde_img, clyde_direction, clyde_dead,
                   clyde_box, 3)
     draw_misc()
-    targets = get_targets(blinky_x, blinky_y, inky_x, inky_y, pinky_x, pinky_y, clyde_x, clyde_y)
+    targets = get_targets(blinky_x, blinky_y, inky_x,
+                          inky_y, pinky_x, pinky_y, clyde_x, clyde_y)
 
     turns_allowed = check_position(center_x, center_y)
     if moving:
@@ -1067,8 +1128,8 @@ while run:
             blinky_x, blinky_y, blinky_direction = blinky.move_blinky_ai()
 
         else:
-        #    blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
-           blinky_x, blinky_y, blinky_direction = blinky.move_clyde_ai()
+            #    blinky_x, blinky_y, blinky_direction = blinky.move_clyde()
+            blinky_x, blinky_y, blinky_direction = blinky.move_clyde_ai()
 
         if not pinky_dead and not pinky.in_box:
             # pinky_x, pinky_y, pinky_direction = pinky.move_pinky()
@@ -1084,9 +1145,10 @@ while run:
             # inky_x, inky_y, inky_direction = inky.move_clyde()
             inky_x, inky_y, inky_direction = inky.move_clyde_ai()
 
-        #clyde_x, clyde_y, clyde_direction = clyde.move_clyde()
+        # clyde_x, clyde_y, clyde_direction = clyde.move_clyde()
         clyde_x, clyde_y, clyde_direction = clyde.move_clyde_ai()
-    score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
+    score, powerup, power_counter, eaten_ghost = check_collisions(
+        score, powerup, power_counter, eaten_ghost)
     # add to if not powerup to check if eaten ghosts
     if not powerup:
         if (player_circle.colliderect(blinky.rect) and not blinky.dead) or \
