@@ -1140,7 +1140,8 @@ while run:
             pinky_x, pinky_y, pinky_direction = pinky.move_clyde_ai()
 
         if not inky_dead and not inky.in_box:
-            inky_x, inky_y, inky_direction = inky.move_inky()
+            # inky_x, inky_y, inky_direction = inky.move_inky()
+            inky_x, inky_y, inky_direction = inky.move_inky_ai(blinky_x, blinky_y, pinky_x, pinky_y)
         else:
             # inky_x, inky_y, inky_direction = inky.move_clyde()
             inky_x, inky_y, inky_direction = inky.move_clyde_ai()
