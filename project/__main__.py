@@ -1,9 +1,8 @@
-# Build Pac-Man from Scratch in Python with PyGame!!
+
 import copy
-from board import boards
+from board import boards1, boards2, boards3
 import pygame
 import math
-import random
 
 pygame.init()
 
@@ -25,18 +24,23 @@ GHOST_START = {
         'y': 390
     }
 }
-WIDTH = 900
-HEIGHT = 950
-screen = pygame.display.set_mode([WIDTH, HEIGHT])
-timer = pygame.time.Clock()
-fps = 60
-font = pygame.font.Font('freesansbold.ttf', 20)
-level = copy.deepcopy(boards)
-color = 'blue'
+LARGURA = 900
+ALTURA = 950
+TELA = pygame.display.set_mode([LARGURA, ALTURA])
+TIMER = pygame.time.Clock()
+FPS = 60
+FONTE = pygame.font.Font('freesansbold.ttf', 20)
+FASE_1 = copy.deepcopy(boards1)
+FASE_2 = copy.deepcopy(boards2)
+FASE_3 = copy.deepcopy(boards3)
+FASES = [FASE_1, FASE_2, FASE_3]
+LEVEL = FASES[0]
+CONTADOR_FASE = 0
+COR = 'blue'
 PI = math.pi
-player_images = []
+PACMAN = []
 for i in range(1, 5):
-    player_images.append(pygame.transform.scale(pygame.image.load(
+    PACMAN.append(pygame.transform.scale(pygame.image.load(
         f'project/assets/player_images/{i}.png'), (45, 45)))
 blinky_img = pygame.transform.scale(pygame.image.load(
     f'project/assets/ghost_images/red.png'), (45, 45))
@@ -111,78 +115,78 @@ class Ghost:
 
     def draw(self):
         if (not powerup and not self.dead) or (eaten_ghost[self.id] and powerup and not self.dead):
-            screen.blit(self.img, (self.x_pos, self.y_pos))
+            TELA.blit(self.img, (self.x_pos, self.y_pos))
         elif powerup and not self.dead and not eaten_ghost[self.id]:
-            screen.blit(spooked_img, (self.x_pos, self.y_pos))
+            TELA.blit(spooked_img, (self.x_pos, self.y_pos))
         else:
-            screen.blit(dead_img, (self.x_pos, self.y_pos))
+            TELA.blit(dead_img, (self.x_pos, self.y_pos))
         ghost_rect = pygame.rect.Rect(
             (self.center_x - 18, self.center_y - 18), (36, 36))
         return ghost_rect
 
     def check_collisions(self):
         # R, L, U, D
-        num1 = ((HEIGHT - 50) // 32)
-        num2 = (WIDTH // 30)
+        num1 = ((ALTURA - 50) // 32)
+        num2 = (LARGURA // 30)
         num3 = 15
         self.turns = [False, False, False, False]
         if 0 < self.center_x // 30 < 29:
-            if level[(self.center_y - num3) // num1][self.center_x // num2] == 9:
+            if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9:
                 self.turns[2] = True
-            if level[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
-                    or (level[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
+            if LEVEL[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
+                    or (LEVEL[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[1] = True
-            if level[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
-                    or (level[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
+            if LEVEL[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
+                    or (LEVEL[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[0] = True
-            if level[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                    or (level[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+            if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
+                    or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[3] = True
-            if level[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                    or (level[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+            if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
+                    or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[2] = True
 
             if self.direction == 2 or self.direction == 3:
                 if 12 <= self.center_x % num2 <= 18:
-                    if level[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                            or (level[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
+                            or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[3] = True
-                    if level[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                            or (level[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
+                            or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[2] = True
                 if 12 <= self.center_y % num1 <= 18:
-                    if level[self.center_y // num1][(self.center_x - num2) // num2] < 3 \
-                            or (level[self.center_y // num1][(self.center_x - num2) // num2] == 9 and (
+                    if LEVEL[self.center_y // num1][(self.center_x - num2) // num2] < 3 \
+                            or (LEVEL[self.center_y // num1][(self.center_x - num2) // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[1] = True
-                    if level[self.center_y // num1][(self.center_x + num2) // num2] < 3 \
-                            or (level[self.center_y // num1][(self.center_x + num2) // num2] == 9 and (
+                    if LEVEL[self.center_y // num1][(self.center_x + num2) // num2] < 3 \
+                            or (LEVEL[self.center_y // num1][(self.center_x + num2) // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[0] = True
 
             if self.direction == 0 or self.direction == 1:
                 if 12 <= self.center_x % num2 <= 18:
-                    if level[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                            or (level[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
+                            or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[3] = True
-                    if level[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                            or (level[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
+                            or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[2] = True
                 if 12 <= self.center_y % num1 <= 18:
-                    if level[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
-                            or (level[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
+                    if LEVEL[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
+                            or (LEVEL[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[1] = True
-                    if level[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
-                            or (level[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
+                    if LEVEL[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
+                            or (LEVEL[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[0] = True
         else:
@@ -292,6 +296,7 @@ class Ghost:
 
             # Calcule a heurística para o próximo movimento
             for i in range(len(turns)):
+                distance = 0
                 if turns[i]:
                     distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
 
@@ -353,36 +358,63 @@ class Ghost:
 
 
 def draw_misc():
-    score_text = font.render(f'Score: {score}', True, 'white')
-    screen.blit(score_text, (10, 920))
+    score_text = FONTE.render(f'Score: {score}', True, 'white')
+    TELA.blit(score_text, (10, ALTURA - 50))
     if powerup:
-        pygame.draw.circle(screen, 'blue', (140, 930), 15)
+        pygame.draw.circle(TELA, 'blue', (140, 930), 15)
     for i in range(lives):
-        screen.blit(pygame.transform.scale(
-            player_images[0], (30, 30)), (650 + i * 40, 915))
+        TELA.blit(pygame.transform.scale(
+            PACMAN[0], (30, 30)), (650 + i * 40, 915))
+
+    # Centralize o retângulo branco
+    rect_width = LARGURA * 0.7
+    rect_height = ALTURA * 0.35
+    rect_x = (LARGURA - rect_width) / 2
+    rect_y = (ALTURA - rect_height) / 2
+
+    # Centralize o retângulo cinza escuro
+    gray_rect_width = LARGURA * 0.65
+    gray_rect_height = ALTURA * 0.3
+    gray_rect_x = (LARGURA - gray_rect_width) / 2
+    gray_rect_y = (ALTURA - gray_rect_height) / 2
     if game_over:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300], 0, 10)
-        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render(
-            'Game over! Space bar to restart!', True, 'red')
-        screen.blit(gameover_text, (100, 300))
+
+        pygame.draw.rect(TELA, 'white', [rect_x, rect_y,
+                                         rect_width, rect_height], 0, 10)
+        pygame.draw.rect(TELA, 'dark gray', [
+            gray_rect_x, gray_rect_y, gray_rect_width, gray_rect_height], 0, 10)
+
+        # Renderize o texto centralizado
+        gameover_text = FONTE.render(
+            'Game over! \nAperte espaço!', True, 'red')
+        text_width, text_height = gameover_text.get_size()
+        text_x = (LARGURA - text_width) / 2
+        text_y = (ALTURA - text_height) / 2
+        TELA.blit(gameover_text, (text_x, text_y))
+
     if game_won:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300], 0, 10)
-        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render(
-            'Victory! Space bar to restart!', True, 'green')
-        screen.blit(gameover_text, (100, 300))
+        pygame.draw.rect(TELA, 'white', [rect_x, rect_y,
+                                         rect_width, rect_height], 0, 10)
+        pygame.draw.rect(TELA, 'dark gray', [
+            gray_rect_x, gray_rect_y, gray_rect_width, gray_rect_height], 0, 10)
+
+        gameover_text = FONTE.render(
+            'Vitória! Aperte espaço!', True, 'green')
+        text_width, text_height = gameover_text.get_size()
+        text_x = (LARGURA - text_width) / 2
+        text_y = (ALTURA - text_height) / 2
+        TELA.blit(gameover_text, (text_x, text_y))
 
 
 def check_collisions(scor, power, power_count, eaten_ghosts):
-    num1 = (HEIGHT - 50) // 32
-    num2 = WIDTH // 30
+    num1 = (ALTURA - 50) // 32
+    num2 = LARGURA // 30
     if 0 < player_x < 870:
-        if level[center_y // num1][center_x // num2] == 1:
-            level[center_y // num1][center_x // num2] = 0
+        if LEVEL[center_y // num1][center_x // num2] == 1:
+            LEVEL[center_y // num1][center_x // num2] = 0
             scor += 10
-        if level[center_y // num1][center_x // num2] == 2:
-            level[center_y // num1][center_x // num2] = 0
+        if LEVEL[center_y // num1][center_x // num2] == 2:
+            LEVEL[center_y // num1][center_x // num2] = 0
             scor += 50
             power = True
             power_count = 0
@@ -391,97 +423,97 @@ def check_collisions(scor, power, power_count, eaten_ghosts):
 
 
 def draw_board():
-    num1 = ((HEIGHT - 50) // 32)
-    num2 = (WIDTH // 30)
-    for i in range(len(level)):
-        for j in range(len(level[i])):
-            if level[i][j] == 1:
+    num1 = ((ALTURA - 50) // 32)
+    num2 = (LARGURA // 30)
+    for i in range(len(LEVEL)):
+        for j in range(len(LEVEL[i])):
+            if LEVEL[i][j] == 1:
                 pygame.draw.circle(
-                    screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 4)
-            if level[i][j] == 2 and not flicker:
+                    TELA, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 4)
+            if LEVEL[i][j] == 2 and not flicker:
                 pygame.draw.circle(
-                    screen, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 10)
-            if level[i][j] == 3:
-                pygame.draw.line(screen, color, (j * num2 + (0.5 * num2), i * num1),
+                    TELA, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), 10)
+            if LEVEL[i][j] == 3:
+                pygame.draw.line(TELA, COR, (j * num2 + (0.5 * num2), i * num1),
                                  (j * num2 + (0.5 * num2), i * num1 + num1), 3)
-            if level[i][j] == 4:
-                pygame.draw.line(screen, color, (j * num2, i * num1 + (0.5 * num1)),
+            if LEVEL[i][j] == 4:
+                pygame.draw.line(TELA, COR, (j * num2, i * num1 + (0.5 * num1)),
                                  (j * num2 + num2, i * num1 + (0.5 * num1)), 3)
-            if level[i][j] == 5:
-                pygame.draw.arc(screen, color, [(j * num2 - (num2 * 0.4)) - 2, (i * num1 + (0.5 * num1)), num2, num1],
+            if LEVEL[i][j] == 5:
+                pygame.draw.arc(TELA, COR, [(j * num2 - (num2 * 0.4)) - 2, (i * num1 + (0.5 * num1)), num2, num1],
                                 0, PI / 2, 3)
-            if level[i][j] == 6:
-                pygame.draw.arc(screen, color,
+            if LEVEL[i][j] == 6:
+                pygame.draw.arc(TELA, COR,
                                 [(j * num2 + (num2 * 0.5)), (i * num1 + (0.5 * num1)), num2, num1], PI / 2, PI, 3)
-            if level[i][j] == 7:
-                pygame.draw.arc(screen, color, [(j * num2 + (num2 * 0.5)), (i * num1 - (0.4 * num1)), num2, num1], PI,
+            if LEVEL[i][j] == 7:
+                pygame.draw.arc(TELA, COR, [(j * num2 + (num2 * 0.5)), (i * num1 - (0.4 * num1)), num2, num1], PI,
                                 3 * PI / 2, 3)
-            if level[i][j] == 8:
-                pygame.draw.arc(screen, color,
+            if LEVEL[i][j] == 8:
+                pygame.draw.arc(TELA, COR,
                                 [(j * num2 - (num2 * 0.4)) - 2, (i * num1 -
                                                                  (0.4 * num1)), num2, num1], 3 * PI / 2,
                                 2 * PI, 3)
-            if level[i][j] == 9:
-                pygame.draw.line(screen, 'white', (j * num2, i * num1 + (0.5 * num1)),
+            if LEVEL[i][j] == 9:
+                pygame.draw.line(TELA, 'white', (j * num2, i * num1 + (0.5 * num1)),
                                  (j * num2 + num2, i * num1 + (0.5 * num1)), 3)
 
 
 def draw_player():
     # 0-RIGHT, 1-LEFT, 2-UP, 3-DOWN
     if direction == 0:
-        screen.blit(player_images[counter // 5], (player_x, player_y))
+        TELA.blit(PACMAN[counter // 5], (player_x, player_y))
     elif direction == 1:
-        screen.blit(pygame.transform.flip(
-            player_images[counter // 5], True, False), (player_x, player_y))
+        TELA.blit(pygame.transform.flip(
+            PACMAN[counter // 5], True, False), (player_x, player_y))
     elif direction == 2:
-        screen.blit(pygame.transform.rotate(
-            player_images[counter // 5], 90), (player_x, player_y))
+        TELA.blit(pygame.transform.rotate(
+            PACMAN[counter // 5], 90), (player_x, player_y))
     elif direction == 3:
-        screen.blit(pygame.transform.rotate(
-            player_images[counter // 5], 270), (player_x, player_y))
+        TELA.blit(pygame.transform.rotate(
+            PACMAN[counter // 5], 270), (player_x, player_y))
 
 
 def check_position(centerx, centery):
     turns = [False, False, False, False]
-    num1 = (HEIGHT - 50) // 32
-    num2 = (WIDTH // 30)
+    num1 = (ALTURA - 50) // 32
+    num2 = (LARGURA // 30)
     num3 = 15
     # check collisions based on center x and center y of player +/- fudge number
     if centerx // 30 < 29:
         if direction == 0:
-            if level[centery // num1][(centerx - num3) // num2] < 3:
+            if LEVEL[centery // num1][(centerx - num3) // num2] < 3:
                 turns[1] = True
         if direction == 1:
-            if level[centery // num1][(centerx + num3) // num2] < 3:
+            if LEVEL[centery // num1][(centerx + num3) // num2] < 3:
                 turns[0] = True
         if direction == 2:
-            if level[(centery + num3) // num1][centerx // num2] < 3:
+            if LEVEL[(centery + num3) // num1][centerx // num2] < 3:
                 turns[3] = True
         if direction == 3:
-            if level[(centery - num3) // num1][centerx // num2] < 3:
+            if LEVEL[(centery - num3) // num1][centerx // num2] < 3:
                 turns[2] = True
 
         if direction == 2 or direction == 3:
             if 12 <= centerx % num2 <= 18:
-                if level[(centery + num3) // num1][centerx // num2] < 3:
+                if LEVEL[(centery + num3) // num1][centerx // num2] < 3:
                     turns[3] = True
-                if level[(centery - num3) // num1][centerx // num2] < 3:
+                if LEVEL[(centery - num3) // num1][centerx // num2] < 3:
                     turns[2] = True
             if 12 <= centery % num1 <= 18:
-                if level[centery // num1][(centerx - num2) // num2] < 3:
+                if LEVEL[centery // num1][(centerx - num2) // num2] < 3:
                     turns[1] = True
-                if level[centery // num1][(centerx + num2) // num2] < 3:
+                if LEVEL[centery // num1][(centerx + num2) // num2] < 3:
                     turns[0] = True
         if direction == 0 or direction == 1:
             if 12 <= centerx % num2 <= 18:
-                if level[(centery + num1) // num1][centerx // num2] < 3:
+                if LEVEL[(centery + num1) // num1][centerx // num2] < 3:
                     turns[3] = True
-                if level[(centery - num1) // num1][centerx // num2] < 3:
+                if LEVEL[(centery - num1) // num1][centerx // num2] < 3:
                     turns[2] = True
             if 12 <= centery % num1 <= 18:
-                if level[centery // num1][(centerx - num3) // num2] < 3:
+                if LEVEL[centery // num1][(centerx - num3) // num2] < 3:
                     turns[1] = True
-                if level[centery // num1][(centerx + num3) // num2] < 3:
+                if LEVEL[centery // num1][(centerx + num3) // num2] < 3:
                     turns[0] = True
     else:
         turns[0] = True
@@ -584,7 +616,7 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, pink_x, pink_y, clyd_x, clyd_y):
 
 run = True
 while run:
-    timer.tick(fps)
+    TIMER.tick(FPS)
     if counter < 19:
         counter += 1
         if counter > 3:
@@ -604,7 +636,7 @@ while run:
     else:
         moving = True
 
-    screen.fill('black')
+    TELA.fill('black')
     draw_board()
     center_x = player_x + 23
     center_y = player_y + 24
@@ -630,12 +662,12 @@ while run:
         ghost_speeds[3] = 4
 
     game_won = True
-    for i in range(len(level)):
-        if 1 in level[i] or 2 in level[i]:
+    for i in range(len(LEVEL)):
+        if score < 200: #if 1 in level[i] or 2 in level[i]: #deixei o score < 200 apenas para testes
             game_won = False
 
     player_circle = pygame.draw.circle(
-        screen, 'black', (center_x, center_y), 20, 2)
+        TELA, 'black', (center_x, center_y), 20, 2)
     draw_player()
     blinky = Ghost(blinky_x, blinky_y, targets[0], ghost_speeds[0], blinky_img, blinky_direction, blinky_dead,
                    blinky_box, 0)
@@ -896,7 +928,15 @@ while run:
                 pinky_dead = False
                 score = 0
                 lives = 3
-                level = copy.deepcopy(boards)
+                if game_won:
+                    CONTADOR_FASE += 1
+                    if CONTADOR_FASE == 3:
+                        print('vocÊ ganhou')
+                    else:
+                        LEVEL = FASES[CONTADOR_FASE]
+                        print(f'proxima fase: {CONTADOR_FASE}')
+                if game_over:
+                    LEVEL = FASES[CONTADOR_FASE]
                 game_over = False
                 game_won = False
 

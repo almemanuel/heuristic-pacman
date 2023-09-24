@@ -7,23 +7,23 @@ import random
 
 pygame.init()
 
-LARGURA = 620
-ALTURA = 640
-LARGURA_LINHA = ALTURA / 32
-LARGURA_COLUNA = LARGURA / 31
+LARGURA = 600  # Múltiplo de 30
+ALTURA = 594 + 50  # Múltiplo de 33
+LARGURA_LINHA = (ALTURA - 50) // 33  # 18
+LARGURA_COLUNA = LARGURA // 30  # 20
 TELA = pygame.display.set_mode([LARGURA, ALTURA])
 TIMER = pygame.time.Clock()
 FPS = 60
-FONTE = pygame.font.Font('freesansbold.ttf', 20)
+FONTE = pygame.font.Font('freesansbold.ttf', 25)
 LEVEL = copy.deepcopy(boards)
-COR = 'blue'
+COR = 'red'
 PI = math.pi
 RAIO_CIRCULO_MENOR = 3
 RAIO_CIRCULO_MAIOR = 6
 PACMAN = []
 for i in range(1, 5):
     PACMAN.append(pygame.transform.scale(pygame.image.load(
-        f'project/assets/player_images/{i}.png'), (LARGURA_LINHA, LARGURA_LINHA)))
+        f'project/assets/player_images/{i}.png'), (LARGURA_LINHA + 3, LARGURA_COLUNA + 3)))
 blinky_img = pygame.transform.scale(pygame.image.load(
     f'project/assets/ghost_images/red.png'), (LARGURA_LINHA + 2, LARGURA_LINHA + 2))
 pinky_img = pygame.transform.scale(pygame.image.load(
@@ -37,27 +37,27 @@ spooked_img = pygame.transform.scale(pygame.image.load(
 dead_img = pygame.transform.scale(pygame.image.load(
     f'project/assets/ghost_images/dead.png'), (LARGURA_LINHA + 2, LARGURA_LINHA + 2))
 PACMAN_X = int(LARGURA_COLUNA * 13)
-PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA/2))
+PACMAN_Y = int(LARGURA_LINHA * 22)
 direction = 0
 
 # BLINKY - Vermelho
-BLINKY_X = int(LARGURA_COLUNA * 8 + (LARGURA_COLUNA/2))
-BLINKY_Y = int(LARGURA_LINHA * 7 + (LARGURA_LINHA/2))
+BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+BLINKY_Y = int(LARGURA_LINHA * 12)
 blinky_direction = 0
 
 # INKY - Azul
-INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA/2))
-INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA/2))
+INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+INKY_Y = int(LARGURA_LINHA * 15)
 inky_direction = 2
 
 # PINKY - Rosa
-PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA/2))
-PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA/2))
+PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+PINKY_Y = int(LARGURA_LINHA * 15)
 pinky_direction = 2
 
 # CLYDE - Laranja
-CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA/2))
-CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA/2))
+CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+CLYDE_Y = int(LARGURA_LINHA * 15)
 clyde_direction = 2
 counter = 0
 flicker = False
@@ -82,7 +82,7 @@ pinky_box = False
 moving = False
 ghost_speeds = [2, 2, 2, 2]
 startup_counter = 0
-lives = 3
+lives = 2
 game_over = False
 game_won = False
 
@@ -91,8 +91,8 @@ class Ghost:
     def __init__(self, x_coord, y_coord, target, speed, img, direct, dead, box, id):
         self.x_pos = x_coord
         self.y_pos = y_coord
-        self.center_x = self.x_pos + 22
-        self.center_y = self.y_pos + 22
+        self.center_x = self.x_pos + 10
+        self.center_y = self.y_pos + 10
         self.target = target
         self.speed = speed
         self.img = img
@@ -116,67 +116,65 @@ class Ghost:
 
     def check_collisions(self):
         # R, L, U, D
-        num1 = ((ALTURA - 50) // 32)
-        num2 = (LARGURA // 30)
         num3 = 15
         self.turns = [False, False, False, False]
         if 0 < self.center_x // 30 < 29:
-            if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9:
+            if LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9:
                 self.turns[2] = True
-            if LEVEL[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
-                    or (LEVEL[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
+            if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - num3) // LARGURA_COLUNA] < 3 \
+                    or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - num3) // LARGURA_COLUNA] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[1] = True
-            if LEVEL[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
-                    or (LEVEL[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
+            if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + num3) // LARGURA_COLUNA] < 3 \
+                    or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + num3) // LARGURA_COLUNA] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[0] = True
-            if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                    or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+            if LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                    or (LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[3] = True
-            if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                    or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+            if LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                    or (LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                     self.in_box or self.dead)):
                 self.turns[2] = True
 
             if self.direction == 2 or self.direction == 3:
-                if 12 <= self.center_x % num2 <= 18:
-                    if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                            or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+                if 12 <= self.center_x % LARGURA_COLUNA <= 18:
+                    if LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[3] = True
-                    if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                            or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[2] = True
-                if 12 <= self.center_y % num1 <= 18:
-                    if LEVEL[self.center_y // num1][(self.center_x - num2) // num2] < 3 \
-                            or (LEVEL[self.center_y // num1][(self.center_x - num2) // num2] == 9 and (
+                if 12 <= self.center_y % LARGURA_LINHA <= 18:
+                    if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - LARGURA_COLUNA) // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - LARGURA_COLUNA) // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[1] = True
-                    if LEVEL[self.center_y // num1][(self.center_x + num2) // num2] < 3 \
-                            or (LEVEL[self.center_y // num1][(self.center_x + num2) // num2] == 9 and (
+                    if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + LARGURA_COLUNA) // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + LARGURA_COLUNA) // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[0] = True
 
             if self.direction == 0 or self.direction == 1:
-                if 12 <= self.center_x % num2 <= 18:
-                    if LEVEL[(self.center_y + num3) // num1][self.center_x // num2] < 3 \
-                            or (LEVEL[(self.center_y + num3) // num1][self.center_x // num2] == 9 and (
+                if 12 <= self.center_x % LARGURA_COLUNA <= 18:
+                    if LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[(self.center_y + num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[3] = True
-                    if LEVEL[(self.center_y - num3) // num1][self.center_x // num2] < 3 \
-                            or (LEVEL[(self.center_y - num3) // num1][self.center_x // num2] == 9 and (
+                    if LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[(self.center_y - num3) // LARGURA_LINHA][self.center_x // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[2] = True
-                if 12 <= self.center_y % num1 <= 18:
-                    if LEVEL[self.center_y // num1][(self.center_x - num3) // num2] < 3 \
-                            or (LEVEL[self.center_y // num1][(self.center_x - num3) // num2] == 9 and (
+                if 12 <= self.center_y % LARGURA_LINHA <= 18:
+                    if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - num3) // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x - num3) // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[1] = True
-                    if LEVEL[self.center_y // num1][(self.center_x + num3) // num2] < 3 \
-                            or (LEVEL[self.center_y // num1][(self.center_x + num3) // num2] == 9 and (
+                    if LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + num3) // LARGURA_COLUNA] < 3 \
+                            or (LEVEL[self.center_y // LARGURA_LINHA][(self.center_x + num3) // LARGURA_COLUNA] == 9 and (
                             self.in_box or self.dead)):
                         self.turns[0] = True
         else:
@@ -219,8 +217,8 @@ class Ghost:
             self.y_pos += best_direction[1] * self.speed // 2
 
         if self.x_pos < -30:
-            self.x_pos = 900
-        elif self.x_pos > 900:
+            self.x_pos = LARGURA
+        elif self.x_pos > LARGURA + 30:
             self.x_pos -= 30
 
         if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
@@ -255,8 +253,8 @@ class Ghost:
             self.y_pos += best_direction[1] * self.speed // 2
 
         if self.x_pos < -30:
-            self.x_pos = 900
-        elif self.x_pos > 900:
+            self.x_pos = LARGURA
+        elif self.x_pos > LARGURA + 30:
             self.x_pos -= 30
 
         if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
@@ -296,8 +294,8 @@ class Ghost:
             self.y_pos += best_direction[1] * self.speed // 2
 
         if self.x_pos < -30:
-            self.x_pos = 900
-        elif self.x_pos > 900:
+            self.x_pos = LARGURA
+        elif self.x_pos > LARGURA + 30:
             self.x_pos -= 30
 
         if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
@@ -332,8 +330,8 @@ class Ghost:
             self.y_pos += best_direction[1] * self.speed // 2
 
         if self.x_pos < -30:
-            self.x_pos = 900
-        elif self.x_pos > 900:
+            self.x_pos = LARGURA
+        elif self.x_pos > LARGURA + 30:
             self.x_pos -= 30
 
         if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
@@ -345,37 +343,62 @@ class Ghost:
 
 def draw_misc():
     score_text = FONTE.render(f'Score: {score}', True, 'white')
-    TELA.blit(score_text, (10, 920))
+    TELA.blit(score_text, (10, ALTURA - 50))
     if powerup:
         pygame.draw.circle(TELA, 'blue', (140, 930), 15)
     for i in range(lives):
         TELA.blit(pygame.transform.scale(
-            PACMAN[0], (30, 30)), (650 + i * 40, 915))
+            PACMAN[0], (30, 30)), (650 + i * 40, 600))
+
+    # Centralize o retângulo branco
+    rect_width = LARGURA * 0.7
+    rect_height = ALTURA * 0.35
+    rect_x = (LARGURA - rect_width) / 2
+    rect_y = (ALTURA - rect_height) / 2
+
+    # Centralize o retângulo cinza escuro
+    gray_rect_width = LARGURA * 0.65
+    gray_rect_height = ALTURA * 0.3
+    gray_rect_x = (LARGURA - gray_rect_width) / 2
+    gray_rect_y = (ALTURA - gray_rect_height) / 2
     if game_over:
-        pygame.draw.rect(TELA, 'white', [50, 200, 800, 300], 0, 10)
-        pygame.draw.rect(TELA, 'dark gray', [70, 220, 760, 260], 0, 10)
+
+        pygame.draw.rect(TELA, 'white', [rect_x, rect_y,
+                                         rect_width, rect_height], 0, 10)
+        pygame.draw.rect(TELA, 'dark gray', [
+            gray_rect_x, gray_rect_y, gray_rect_width, gray_rect_height], 0, 10)
+
+        # Renderize o texto centralizado
         gameover_text = FONTE.render(
-            'Game over! Space bar to restart!', True, 'red')
-        TELA.blit(gameover_text, (100, 300))
+            'Game over! \nAperte espaço!', True, 'red')
+        text_width, text_height = gameover_text.get_size()
+        text_x = (LARGURA - text_width) / 2
+        text_y = (ALTURA - text_height) / 2
+        TELA.blit(gameover_text, (text_x, text_y))
+
     if game_won:
-        pygame.draw.rect(TELA, 'white', [50, 200, 800, 300], 0, 10)
-        pygame.draw.rect(TELA, 'dark gray', [70, 220, 760, 260], 0, 10)
+        pygame.draw.rect(TELA, 'white', [rect_x, rect_y,
+                                         rect_width, rect_height], 0, 10)
+        pygame.draw.rect(TELA, 'dark gray', [
+            gray_rect_x, gray_rect_y, gray_rect_width, gray_rect_height], 0, 10)
+
         gameover_text = FONTE.render(
-            'Victory! Space bar to restart!', True, 'green')
-        TELA.blit(gameover_text, (100, 300))
+            'Vitória! Aperte espaço!', True, 'green')
+        text_width, text_height = gameover_text.get_size()
+        text_x = (LARGURA - text_width) / 2
+        text_y = (ALTURA - text_height) / 2
+        TELA.blit(gameover_text, (text_x, text_y))
 
 
 def check_collisions(scor, power, power_count, eaten_ghosts, center_x, center_y):
-    num1 = (ALTURA - 50) // 32
-    num2 = LARGURA // 30
     if 0 < center_x < LARGURA:
         center_x = int(center_x)
         center_y = int(center_y)
-        if LEVEL[center_y // num1][center_x // num2] == 1:
-            LEVEL[center_y // num1][center_x // num2] = 0
+        if LEVEL[center_y // LARGURA_LINHA][center_x // LARGURA_COLUNA] == 1:
+            LEVEL[center_y // LARGURA_LINHA][center_x // LARGURA_COLUNA] = 0
             scor += 10
-        if LEVEL[center_y // num1][center_x // num2] == 2:
-            LEVEL[center_y // num1][center_x // num2] = 0
+        if LEVEL[center_y // LARGURA_LINHA][center_x // LARGURA_COLUNA] == 2:
+            LEVEL[center_y // LARGURA_LINHA][center_x // LARGURA_COLUNA] = 0
             scor += 50
             power = True
             power_count = 0
@@ -384,45 +407,43 @@ def check_collisions(scor, power, power_count, eaten_ghosts, center_x, center_y)
 
 
 def desenharTabuleiro():
-    num1 = ((ALTURA - 50) // 32)
-    num2 = (LARGURA // 30)
     for i in range(len(LEVEL)):
         for j in range(len(LEVEL[i])):
             if LEVEL[i][j] == 1:
                 pygame.draw.circle(
-                    TELA, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), RAIO_CIRCULO_MENOR)
+                    TELA, 'white', (j * LARGURA_COLUNA + (0.5 * LARGURA_COLUNA), i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), RAIO_CIRCULO_MENOR)
             if LEVEL[i][j] == 2 and not flicker:
                 pygame.draw.circle(
-                    TELA, 'white', (j * num2 + (0.5 * num2), i * num1 + (0.5 * num1)), RAIO_CIRCULO_MAIOR)
+                    TELA, 'white', (j * LARGURA_COLUNA + (0.5 * LARGURA_COLUNA), i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), RAIO_CIRCULO_MAIOR)
             if LEVEL[i][j] == 3:
-                pygame.draw.line(TELA, COR, (j * num2 + (0.5 * num2), i * num1),
-                                 (j * num2 + (0.5 * num2), i * num1 + num1), 3)
+                pygame.draw.line(TELA, COR, (j * LARGURA_COLUNA + (0.5 * LARGURA_COLUNA), i * LARGURA_LINHA),
+                                 (j * LARGURA_COLUNA + (0.5 * LARGURA_COLUNA), i * LARGURA_LINHA + LARGURA_LINHA), 3)
             if LEVEL[i][j] == 4:
-                pygame.draw.line(TELA, COR, (j * num2, i * num1 + (0.5 * num1)),
-                                 (j * num2 + num2, i * num1 + (0.5 * num1)), 3)
+                pygame.draw.line(TELA, COR, (j * LARGURA_COLUNA, i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)),
+                                 (j * LARGURA_COLUNA + LARGURA_COLUNA, i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), 3)
             if LEVEL[i][j] == 5:
-                pygame.draw.arc(TELA, COR, [(j * num2 - (num2 * 0.4)) - 2, (i * num1 + (0.5 * num1)), num2, num1],
+                pygame.draw.arc(TELA, COR, [(j * LARGURA_COLUNA - (LARGURA_COLUNA * 0.4)) - 2, (i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), LARGURA_COLUNA, LARGURA_LINHA],
                                 0, PI / 2, 3)
             if LEVEL[i][j] == 6:
                 pygame.draw.arc(TELA, COR,
-                                [(j * num2 + (num2 * 0.5)), (i * num1 + (0.5 * num1)), num2, num1], PI / 2, PI, 3)
+                                [(j * LARGURA_COLUNA + (LARGURA_COLUNA * 0.5)), (i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), LARGURA_COLUNA, LARGURA_LINHA], PI / 2, PI, 3)
             if LEVEL[i][j] == 7:
-                pygame.draw.arc(TELA, COR, [(j * num2 + (num2 * 0.5)), (i * num1 - (0.4 * num1)), num2, num1], PI,
+                pygame.draw.arc(TELA, COR, [(j * LARGURA_COLUNA + (LARGURA_COLUNA * 0.5)), (i * LARGURA_LINHA - (0.4 * LARGURA_LINHA)), LARGURA_COLUNA, LARGURA_LINHA], PI,
                                 3 * PI / 2, 3)
             if LEVEL[i][j] == 8:
                 pygame.draw.arc(TELA, COR,
-                                [(j * num2 - (num2 * 0.4)) - 2, (i * num1 -
-                                                                 (0.4 * num1)), num2, num1], 3 * PI / 2,
+                                [(j * LARGURA_COLUNA - (LARGURA_COLUNA * 0.4)) - 2, (i * LARGURA_LINHA -
+                                                                                     (0.4 * LARGURA_LINHA)), LARGURA_COLUNA, LARGURA_LINHA], 3 * PI / 2,
                                 2 * PI, 3)
             if LEVEL[i][j] == 9:
-                pygame.draw.line(TELA, 'white', (j * num2, i * num1 + (0.5 * num1)),
-                                 (j * num2 + num2, i * num1 + (0.5 * num1)), 3)
+                pygame.draw.line(TELA, 'white', (j * LARGURA_COLUNA, i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)),
+                                 (j * LARGURA_COLUNA + LARGURA_COLUNA, i * LARGURA_LINHA + (0.5 * LARGURA_LINHA)), 3)
 
 
 def desenharJogador():
     # 0-RIGHT, 1-LEFT, 2-UP, 3-DOWN
     if direction == 0:
-        TELA.blit(PACMAN[counter // 5], (PACMAN_X, PACMAN_Y))
+        TELA.blit(PACMAN[counter // 5], (PACMAN_X + 3, PACMAN_Y + 3))
     elif direction == 1:
         TELA.blit(pygame.transform.flip(
             PACMAN[counter // 5], True, False), (PACMAN_X, PACMAN_Y))
@@ -438,15 +459,13 @@ def verificarPosicao(centerx, centery):
     turns = [False, False, False, False]
     centerx = int(centerx)
     centery = int(centery)
-    num1 = (ALTURA - 50) // 32
-    num2 = (LARGURA // 30)
     num3 = 15
     rows = len(LEVEL)
     cols = len(LEVEL[0])
 
     # Calcule as posições em termos de células do labirinto
-    cell_x = centerx // num2
-    cell_y = centery // num1
+    cell_x = centerx // LARGURA_COLUNA
+    cell_y = centery // LARGURA_LINHA
 
     if 0 <= cell_x < cols and 0 <= cell_y < rows:
         if direction == 0:
@@ -463,23 +482,23 @@ def verificarPosicao(centerx, centery):
                 turns[2] = True
 
         if direction == 2 or direction == 3:
-            if 12 <= centerx % num2 <= 18:
+            if 12 <= centerx % LARGURA_COLUNA <= 18:
                 if LEVEL[cell_y + 1][cell_x] < 3:
                     turns[3] = True
                 if LEVEL[cell_y - 1][cell_x] < 3:
                     turns[2] = True
-            if 12 <= centery % num1 <= 18:
+            if 12 <= centery % LARGURA_LINHA <= 18:
                 if LEVEL[cell_y][cell_x - 1] < 3:
                     turns[1] = True
                 if LEVEL[cell_y][cell_x + 1] < 3:
                     turns[0] = True
         if direction == 0 or direction == 1:
-            if 12 <= centerx % num2 <= 18:
+            if 12 <= centerx % LARGURA_COLUNA <= 18:
                 if LEVEL[cell_y + 1][cell_x] < 3:
                     turns[3] = True
                 if LEVEL[cell_y - 1][cell_x] < 3:
                     turns[2] = True
-            if 12 <= centery % num1 <= 18:
+            if 12 <= centery % LARGURA_LINHA <= 18:
                 if LEVEL[cell_y][cell_x - 1] < 3:
                     turns[1] = True
                 if LEVEL[cell_y][cell_x + 1] < 3:
@@ -607,8 +626,8 @@ while run:
 
     TELA.fill('black')
     desenharTabuleiro()
-    center_x = PACMAN_X + 12
-    center_y = PACMAN_Y + 12
+    center_x = PACMAN_X + LARGURA_LINHA / 2
+    center_y = PACMAN_Y + LARGURA_COLUNA / 2
     if powerup:
         ghost_speeds = [1, 1, 1, 1]
     else:
@@ -636,7 +655,7 @@ while run:
             game_won = False
 
     player_circle = pygame.draw.circle(
-        TELA, 'black', (center_x, center_y), 5, 2)
+        TELA, 'red', (center_x, center_y), LARGURA_LINHA / 2, 1)
     desenharJogador()
     blinky = Ghost(BLINKY_X, BLINKY_Y, targets[0], ghost_speeds[0], blinky_img, blinky_direction, blinky_dead,
                    blinky_box, 0)
@@ -691,21 +710,21 @@ while run:
                 startup_counter = 0
                 powerup = False
                 power_counter = 0
-                PACMAN_X = 450
-                PACMAN_Y = 663
+                PACMAN_X = int(LARGURA_COLUNA * 13)
+                PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
                 direction = 0
                 direction_command = 0
-                BLINKY_X = 56
-                BLINKY_Y = 58
+                BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+                BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
                 blinky_direction = 0
-                INKY_X = 440
-                INKY_Y = 388
+                INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+                INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 inky_direction = 2
-                PINKY_X = 440
-                PINKY_Y = 438
+                PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+                PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 pinky_direction = 2
-                CLYDE_X = 440
-                CLYDE_Y = 438
+                CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+                CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 clyde_direction = 2
                 eaten_ghost = [False, False, False, False]
                 blinky_dead = False
@@ -722,21 +741,21 @@ while run:
             power_counter = 0
             lives -= 1
             startup_counter = 0
-            PACMAN_X = 450
-            PACMAN_Y = 663
+            PACMAN_X = int(LARGURA_COLUNA * 13)
+            PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
             direction = 0
             direction_command = 0
-            BLINKY_X = 56
-            BLINKY_Y = 58
+            BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
             blinky_direction = 0
-            INKY_X = 440
-            INKY_Y = 388
+            INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+            INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             inky_direction = 2
-            PINKY_X = 440
-            PINKY_Y = 438
+            PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             pinky_direction = 2
-            CLYDE_X = 440
-            CLYDE_Y = 438
+            CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+            CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             clyde_direction = 2
             eaten_ghost = [False, False, False, False]
             blinky_dead = False
@@ -753,21 +772,21 @@ while run:
             power_counter = 0
             lives -= 1
             startup_counter = 0
-            PACMAN_X = 450
-            PACMAN_Y = 663
+            PACMAN_X = int(LARGURA_COLUNA * 13)
+            PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
             direction = 0
             direction_command = 0
-            BLINKY_X = 56
-            BLINKY_Y = 58
+            BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
             blinky_direction = 0
-            INKY_X = 440
-            INKY_Y = 388
+            INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+            INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             inky_direction = 2
-            PINKY_X = 440
-            PINKY_Y = 438
+            PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             pinky_direction = 2
-            CLYDE_X = 440
-            CLYDE_Y = 438
+            CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+            CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             clyde_direction = 2
             eaten_ghost = [False, False, False, False]
             blinky_dead = False
@@ -784,21 +803,21 @@ while run:
             power_counter = 0
             lives -= 1
             startup_counter = 0
-            PACMAN_X = 450
-            PACMAN_Y = 663
+            PACMAN_X = int(LARGURA_COLUNA * 13)
+            PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
             direction = 0
             direction_command = 0
-            BLINKY_X = 56
-            BLINKY_Y = 58
+            BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
             blinky_direction = 0
-            INKY_X = 440
-            INKY_Y = 388
+            INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+            INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             inky_direction = 2
-            PINKY_X = 440
-            PINKY_Y = 438
+            PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             pinky_direction = 2
-            CLYDE_X = 440
-            CLYDE_Y = 438
+            CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+            CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             clyde_direction = 2
             eaten_ghost = [False, False, False, False]
             blinky_dead = False
@@ -815,21 +834,21 @@ while run:
             power_counter = 0
             lives -= 1
             startup_counter = 0
-            PACMAN_X = 450
-            PACMAN_Y = 663
+            PACMAN_X = int(LARGURA_COLUNA * 13)
+            PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
             direction = 0
             direction_command = 0
-            BLINKY_X = 56
-            BLINKY_Y = 58
+            BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
             blinky_direction = 0
-            INKY_X = 440
-            INKY_Y = 388
+            INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+            INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             inky_direction = 2
-            PINKY_X = 440
-            PINKY_Y = 438
+            PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+            PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             pinky_direction = 2
-            CLYDE_X = 440
-            CLYDE_Y = 438
+            CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+            CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
             clyde_direction = 2
             eaten_ghost = [False, False, False, False]
             blinky_dead = False
@@ -874,21 +893,21 @@ while run:
                 power_counter = 0
                 lives -= 1
                 startup_counter = 0
-                PACMAN_X = 450
-                PACMAN_Y = 663
+                PACMAN_X = int(LARGURA_COLUNA * 13)
+                PACMAN_Y = int(LARGURA_LINHA * 21 + (LARGURA_LINHA / 2))
                 direction = 0
                 direction_command = 0
-                BLINKY_X = 56
-                BLINKY_Y = 58
+                BLINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+                BLINKY_Y = int(LARGURA_LINHA * 10 + (LARGURA_LINHA / 2))
                 blinky_direction = 0
-                INKY_X = 440
-                INKY_Y = 388
+                INKY_X = int(LARGURA_COLUNA * 12 + (LARGURA_COLUNA / 2))
+                INKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 inky_direction = 2
-                PINKY_X = 440
-                PINKY_Y = 438
+                PINKY_X = int(LARGURA_COLUNA * 14 + (LARGURA_COLUNA / 2))
+                PINKY_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 pinky_direction = 2
-                CLYDE_X = 440
-                CLYDE_Y = 438
+                CLYDE_X = int(LARGURA_COLUNA * 16 + (LARGURA_COLUNA / 2))
+                CLYDE_Y = int(LARGURA_LINHA * 13 + (LARGURA_LINHA / 2))
                 clyde_direction = 2
                 eaten_ghost = [False, False, False, False]
                 blinky_dead = False
