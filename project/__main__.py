@@ -243,7 +243,6 @@ class Ghost:
 
         best_direction = None
         best_distance = float('inf')
-
         for direction in directions:
             new_x = self.x_pos + direction[0] * self.speed // 2
             new_y = self.y_pos + direction[1] * self.speed // 2
@@ -289,12 +288,16 @@ class Ghost:
             new_x = self.x_pos + direction[0] * self.speed // 2
             new_y = self.y_pos + direction[1] * self.speed // 2
 
-            # Calcule a heurística para o próximo movimento
-            distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+            turns, in_box = self.check_collisions()
 
-            if distance < best_distance:
-                best_distance = distance
-                best_direction = direction
+            # Calcule a heurística para o próximo movimento
+            for i in range(len(turns)):
+                if turns[i]:
+                    distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+
+                if distance < best_distance:
+                    best_distance = distance
+                    best_direction = direction
 
         # Atualize a posição do Blinky com base na direção escolhida
         if best_direction is not None:
