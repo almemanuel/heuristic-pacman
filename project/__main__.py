@@ -7,6 +7,24 @@ import random
 
 pygame.init()
 
+GHOST_START = {
+    'pinky': {
+        'x': 490,
+        'y': 440
+    },
+    'blinky': {
+        'x': 490,
+        'y': 390
+    },
+    'inky': {
+        'x': 370,
+        'y': 440
+    },
+    'clyde': {
+        'x': 370,
+        'y': 390
+    }
+}
 WIDTH = 900
 HEIGHT = 950
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
@@ -35,18 +53,18 @@ dead_img = pygame.transform.scale(pygame.image.load(
 player_x = 450
 player_y = 663
 direction = 0
-blinky_x = 56
-blinky_y = 58
+blinky_x = GHOST_START['blinky']['x']
+blinky_y = GHOST_START['blinky']['y']
 blinky_direction = 0
-inky_x = 440
-inky_y = 388
-inky_direction = 2
-pinky_x = 440
-pinky_y = 438
-pinky_direction = 2
-clyde_x = 440
-clyde_y = 438
-clyde_direction = 2
+inky_x = GHOST_START['inky']['x']
+inky_y = GHOST_START['inky']['y']
+inky_direction = 0
+pinky_x = GHOST_START['pinky']['x']
+pinky_y = GHOST_START['pinky']['y']
+pinky_direction = 0
+clyde_x = GHOST_START['clyde']['x']
+clyde_y = GHOST_START['clyde']['y']
+clyde_direction = 0
 counter = 0
 flicker = False
 # R, L, U, D
@@ -1165,17 +1183,17 @@ while run:
                 player_y = 663
                 direction = 0
                 direction_command = 0
-                blinky_x = 56
-                blinky_y = 58
+                blinky_x = GHOST_START['blinky']['x']
+                blinky_y = GHOST_START['blinky']['y']
                 blinky_direction = 0
-                inky_x = 440
-                inky_y = 388
+                inky_x = GHOST_START['inky']['x']
+                inky_y = GHOST_START['inky']['y']
                 inky_direction = 2
-                pinky_x = 440
-                pinky_y = 438
+                pinky_x = GHOST_START['pinky']['x']
+                pinky_y = GHOST_START['pinky']['y']
                 pinky_direction = 2
-                clyde_x = 440
-                clyde_y = 438
+                clyde_x = GHOST_START['clyde']['x']
+                clyde_y = GHOST_START['clyde']['y']
                 clyde_direction = 2
                 eaten_ghost = [False, False, False, False]
                 blinky_dead = False
