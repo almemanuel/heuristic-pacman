@@ -90,7 +90,7 @@ inky_box = False
 clyde_box = False
 pinky_box = False
 moving = False
-ghost_speeds = [2, 2, 2, 2]
+ghost_speeds = [1, 1, 1, 1]
 startup_counter = 0
 lives = 3
 game_over = False
@@ -198,6 +198,45 @@ class Ghost:
             self.in_box = False
         return self.turns, self.in_box
 
+    def move_blinky_ai(self):
+        
+        def heuristic(current_x, current_y, target_x, target_y):
+            return abs(current_x - target_x) + abs(current_y - target_y)
+        
+        target_x, target_y = self.target
+        
+        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        best_direction = None
+        best_distance = float('inf')
+
+        for i, direction in enumerate(directions):
+
+            if self.turns[i]:
+                new_x = self.x_pos + direction[0] * self.speed // 2
+                new_y = self.y_pos + direction[1] * self.speed // 2
+                distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2) 
+                + heuristic(new_x, new_y, target_x, target_y)
+
+                if distance < best_distance:
+                    best_distance = distance
+                    best_direction = direction
+
+        if best_direction is not None:
+            self.x_pos += best_direction[0] * self.speed // 2
+            self.y_pos += best_direction[1] * self.speed // 2
+
+        if self.x_pos < -30:
+            self.x_pos = 900
+        elif self.x_pos > 900:
+            self.x_pos -= 30
+
+        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+            self.x_pos = 410
+            self.y_pos = 500
+
+        return self.x_pos, self.y_pos, self.direction
+
     def move_clyde_ai(self):
         # Função de heurística usando a distância de Manhattan
         def heuristic(current_x, current_y, target_x, target_y):
@@ -240,47 +279,11 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
     def move_inky_ai(self, blinky_x, blinky_y, pinky_x, pinky_y):
-        target_x, target_y = self.target
-
-        # Direções possíveis (r, l, u, d)
-        directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
-
-        best_direction = None
-        best_distance = float('inf')
-        for direction in directions:
-            new_x = self.x_pos + direction[0] * self.speed // 2
-            new_y = self.y_pos + direction[1] * self.speed // 2
-
-            # Calcule a posição intermediária com base nas posições de Blinky e Pinky
-            intermediate_x = (blinky_x + pinky_x) // 2
-            intermediate_y = (blinky_y + pinky_y) // 2
-
+        # Função de heurística usando a distância de Manhattan
+        def heuristic(current_x, current_y, blinky_x, blinky_y, pinky_x, pinky_y):
             # Calcule a heurística para o próximo movimento, considerando o destino e a posição intermediária
-            distance = math.sqrt((new_x - intermediate_x) **
-                                 2 + (new_y - intermediate_y)**2)
-
-            if distance < best_distance:
-                best_distance = distance
-                best_direction = direction
-
-        # Atualize a posição de Inky com base na direção escolhida
-        if best_direction is not None:
-            self.x_pos += best_direction[0] * self.speed // 2
-            self.y_pos += best_direction[1] * self.speed // 2
-
-        if self.x_pos < -30:
-            self.x_pos = 900
-        elif self.x_pos > 900:
-            self.x_pos -= 30
-
-        if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
-            self.x_pos = 410
-            self.y_pos = 500
-
-        return self.x_pos, self.y_pos, self.direction
-
-    def move_blinky_ai(self):
-        target_x, target_y = self.target
+            return math.sqrt((current_x - ((blinky_x + pinky_x) // 2)) **
+                                 2 + (current_y - ((blinky_y + pinky_y) // 2))**2)
 
         # Direções possíveis (r, l, u, d)
         directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
@@ -288,23 +291,21 @@ class Ghost:
         best_direction = None
         best_distance = float('inf')
 
-        for direction in directions:
-            new_x = self.x_pos + direction[0] * self.speed // 2
-            new_y = self.y_pos + direction[1] * self.speed // 2
+        for i, direction in enumerate(directions):
+            # Verifique se o fantasma pode virar na direção atual (usando self.turns)
+            if self.turns[i]:
+                new_x = self.x_pos + direction[0] * self.speed // 2
+                new_y = self.y_pos + direction[1] * self.speed // 2
 
-            turns, in_box = self.check_collisions()
-
-            # Calcule a heurística para o próximo movimento
-            for i in range(len(turns)):
-                distance = 0
-                if turns[i]:
-                    distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+                # Calcule a heurística para o próximo movimento
+                distance = heuristic(
+                    new_x, new_y, blinky_x, blinky_y, pinky_x, pinky_y)
 
                 if distance < best_distance:
                     best_distance = distance
                     best_direction = direction
 
-        # Atualize a posição do Blinky com base na direção escolhida
+        # Atualize a posição do Clyde com base na direção escolhida
         if best_direction is not None:
             self.x_pos += best_direction[0] * self.speed // 2
             self.y_pos += best_direction[1] * self.speed // 2
@@ -319,9 +320,49 @@ class Ghost:
             self.y_pos = 500
 
         return self.x_pos, self.y_pos, self.direction
+        # target_x, target_y = self.target
+
+        # # Direções possíveis (r, l, u, d)
+        # directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        # best_direction = None
+        # best_distance = float('inf')
+        # for direction in directions:
+        #     new_x = self.x_pos + direction[0] * self.speed // 2
+        #     new_y = self.y_pos + direction[1] * self.speed // 2
+
+        #     # Calcule a posição intermediária com base nas posições de Blinky e Pinky
+        #     intermediate_x = (blinky_x + pinky_x) // 2
+        #     intermediate_y = (blinky_y + pinky_y) // 2
+
+        #     # Calcule a heurística para o próximo movimento, considerando o destino e a posição intermediária
+        #     distance = math.sqrt((new_x - intermediate_x) **
+        #                          2 + (new_y - intermediate_y)**2)
+
+        #     if distance < best_distance:
+        #         best_distance = distance
+        #         best_direction = direction
+
+        # # Atualize a posição de Inky com base na direção escolhida
+        # if best_direction is not None:
+        #     self.x_pos += best_direction[0] * self.speed // 2
+        #     self.y_pos += best_direction[1] * self.speed // 2
+
+        # if self.x_pos < -30:
+        #     self.x_pos = 900
+        # elif self.x_pos > 900:
+        #     self.x_pos -= 30
+
+        # if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+        #     self.x_pos = 410
+        #     self.y_pos = 500
+
+        # return self.x_pos, self.y_pos, self.direction
 
     def move_pinky_ai(self):
-        target_x, target_y = self.target
+        # Função de heurística usando a distância de Manhattan
+        def heuristic(current_x, current_y, target_x, target_y, vel):
+            return abs(current_x - (target_x + 4 * vel)) + abs(current_y - (target_y + 4 * vel))
 
         # Direções possíveis (r, l, u, d)
         directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
@@ -329,18 +370,21 @@ class Ghost:
         best_direction = None
         best_distance = float('inf')
 
-        for direction in directions:
-            new_x = self.x_pos + direction[0] * self.speed // 2
-            new_y = self.y_pos + direction[1] * self.speed // 2
+        for i, direction in enumerate(directions):
+            # Verifique se o fantasma pode virar na direção atual (usando self.turns)
+            if self.turns[i]:
+                new_x = self.x_pos + direction[0] * self.speed // 2
+                new_y = self.y_pos + direction[1] * self.speed // 2
 
-            # Calcule a heurística para o próximo movimento
-            distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+                # Calcule a heurística para o próximo movimento
+                distance = heuristic(
+                    new_x, new_y, self.target[0], self.target[1], self.speed)
 
-            if distance < best_distance:
-                best_distance = distance
-                best_direction = direction
+                if distance < best_distance:
+                    best_distance = distance
+                    best_direction = direction
 
-        # Atualize a posição do Pinky com base na direção escolhida
+        # Atualize a posição do Clyde com base na direção escolhida
         if best_direction is not None:
             self.x_pos += best_direction[0] * self.speed // 2
             self.y_pos += best_direction[1] * self.speed // 2
@@ -355,6 +399,40 @@ class Ghost:
             self.y_pos = 500
 
         return self.x_pos, self.y_pos, self.direction
+        # target_x, target_y = self.target
+
+        # # Direções possíveis (r, l, u, d)
+        # directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+
+        # best_direction = None
+        # best_distance = float('inf')
+
+        # for direction in directions:
+        #     new_x = self.x_pos + direction[0] * self.speed // 2
+        #     new_y = self.y_pos + direction[1] * self.speed // 2
+
+        #     # Calcule a heurística para o próximo movimento
+        #     distance = math.sqrt((new_x - target_x)**2 + (new_y - target_y)**2)
+
+        #     if distance < best_distance:
+        #         best_distance = distance
+        #         best_direction = direction
+
+        # # Atualize a posição do Pinky com base na direção escolhida
+        # if best_direction is not None:
+        #     self.x_pos += best_direction[0] * self.speed // 2
+        #     self.y_pos += best_direction[1] * self.speed // 2
+
+        # if self.x_pos < -30:
+        #     self.x_pos = 900
+        # elif self.x_pos > 900:
+        #     self.x_pos -= 30
+
+        # if self.x_pos in [400, 402] and self.y_pos == 482 and not self.in_box:
+        #     self.x_pos = 410
+        #     self.y_pos = 500
+
+        # return self.x_pos, self.y_pos, self.direction
 
 
 def draw_misc():
@@ -663,8 +741,8 @@ while run:
 
     game_won = True
     for i in range(len(LEVEL)):
-        if score < 200: #if 1 in level[i] or 2 in level[i]: #deixei o score < 200 apenas para testes
-            game_won = False
+        # if score < 200: #if 1 in level[i] or 2 in level[i]: #deixei o score < 200 apenas para testes
+        game_won = False
 
     player_circle = pygame.draw.circle(
         TELA, 'black', (center_x, center_y), 20, 2)
